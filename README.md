@@ -1,13 +1,19 @@
 # SnakeBat Pipeline Documentation
-Snakemake workflow for bat RMS processing.
+![status](https://img.shields.io/badge/status-in--development-orange)
+![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)
+![Snakemake](https://img.shields.io/badge/Snakemake-v7.32.4-red?logo=snakemake&logoColor=white)
+![Python Version](https://img.shields.io/badge/python-3.10.18-blue)
+![R Version](https://img.shields.io/badge/R-4.4.1-blue)
+
+Snakemake workflow for root mean square (RMS) acoustic energy processing of bat data.
 
 <img src="img/SnakeBat_logo.png" alt="Description" width = 700 height = 450 style="border: none;" />
 
 # Table of Contents
-- [Introduction]
-- [Installation]
-- [Implementation]
-- [Debugging]
+- [Introduction](#introduction)
+- [Installation](#installation)
+- [Implementation](#implementation)
+- [Debugging](#debugging)
 
 ## Introduction
 
