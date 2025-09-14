@@ -1,0 +1,16 @@
+name: snakeBat
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  # Python
+  - python=3.10
+  - snakemake
+  - pandas
+  - numpy<2
+
+  # R
+  - r-base
+  - r-dplyr
+  - r-ggplot2
