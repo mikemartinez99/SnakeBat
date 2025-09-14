@@ -1,0 +1,6 @@
+test_data/*
+RMS_Power/*
+logs/*
+done.txt
+nohup.out
+.snakemake/*
