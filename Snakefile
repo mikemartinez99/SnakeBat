@@ -17,7 +17,8 @@ sample_list = list(samples_df['sample'])
 
 #----- Rule all
 rule all:
-    input: expand("RMS_Power/{sample}.RMS_Power", sample = sample_list)
+    input: 
+        expand("RMS_Power/{sample}.RMS_Power", sample = sample_list),
     output: "done.txt"
     shell: """
     touch done.txt
@@ -55,3 +56,4 @@ rule calc_RMS_Power:
             &> {log}
 
     """
+

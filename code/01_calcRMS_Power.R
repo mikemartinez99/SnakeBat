@@ -106,3 +106,43 @@ for (i in files) {
 #----- Clean files
 csv_files <- list.files(outputDir, pattern = "\\.csv$", full.names = TRUE)
 file.remove(csv_files)
+
+#----- Adjust RMS files
+message("--------------------------------------------------")
+message("Collating results...")
+message("--------------------------------------------------\n")
+
+#----- List subdirectories
+subdirs <- list.dirs(outputDir, recursive = FALSE, full.names = TRUE)
+message(subdirs)
+
+#----- Create a vector of dates that correspond to the subFolders
+dates <- basename(subdirs)
+names(subdirs) <- dates
+names(dates) <- dates
+
+#----- New output dir
+opDir <- "Total_RMSE/"
+if (!dir.exists(opDir)) {
+    dir.create(opDir)
+}
+sample <- basename(outputDir)
+resultsPath <- paste0(opDir, sample, "/")
+if (!dir.exists(resultsPath)) {
+    dir.create(resultsPath)
+}
+
+#----- Apply function to all subFolders
+for (i in subdirs) {
+    message(paste("Calculating daily total for ", i))
+    date <- dates[i]
+    folder <- subdirs[i]
+    dateName <- basename(i)
+
+    #----- Apply the function
+    total <- calcTotalRMSE(i, dateName)
+
+    #----- Save csv
+    write.csv(total, file = paste0(resultsPath, dateName, "_total_RMSE.csv"))
+
+}
