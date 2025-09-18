@@ -37,7 +37,7 @@ All requirements are listed in the [environment configuration file](https://gith
 1. Clone the github repository in a location of your choosing.
 
 ```shell
-git clone https://github/com/mikemartinez99/SnakeBat
+git clone https://github.com/mikemartinez99/SnakeBat
 ```
 
 2. Build conda environment
