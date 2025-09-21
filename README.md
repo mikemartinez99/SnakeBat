@@ -17,6 +17,7 @@ Snakemake workflow for root mean square (RMS) acoustic energy processing of bat 
 - [Implementation](#implementation)
 - [Understanding the Outputs](#understanding-the-outputs)
 - [Debugging](#debugging)
+- [Contact](#contact)
 
 ## Introduction
 This repository contains a simple one-rule Snakemake pipeline for calculating root mean square (RMS) power from bat acoustic energy recordings. RMS power is a widely used measure of signal intensity, allowing researchers to quantify the amplitude of bat echolocation calls over time. By automating RMS calcuations across large datasets, this workflow facilitates the analysis of bat activity, call structure, and energy distribution in acoustic monitoring studies in a highly reproducible manner.
@@ -192,4 +193,11 @@ Note that a Snakemake workflow will still not re-run even if unlocked if the exp
 ``` shell
 rm done.txt
 ```
+
+## Contact
+For questions regarding this pipeline feel free to submit an issue to the github repo or contact:
+
+**Mike Martinez M.S.** - *Dartmouth Center for Quantitative Biology, Genomic Data Science Core*
+
+mike.j.martinez99@gmail.com
 
