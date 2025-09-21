@@ -57,7 +57,7 @@ Installation of R packages only needs to be done once.
 # Start an interactive R session
 R
 install.packages("tuneR")
-install.packaghes(seewave)
+install.packages("seewave")
 quit()
 ```
 
