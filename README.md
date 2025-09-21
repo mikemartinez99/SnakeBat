@@ -9,13 +9,13 @@ Snakemake workflow for root mean square (RMS) acoustic energy processing of bat 
 
 
 
-
 <img src="img/SnakeBat_logo.png" alt="Description" width = 700 height = 450 style="border: none;" />
 
 # Table of Contents
 - [Introduction](#introduction)
 - [Installation](#installation)
 - [Implementation](#implementation)
+- [Understanding the Outputs](#understanding-the-outputs)
 - [Debugging](#debugging)
 
 ## Introduction
@@ -40,13 +40,13 @@ All requirements are listed in the [environment configuration file](https://gith
 git clone https://github.com/mikemartinez99/SnakeBat
 ```
 
-2. Build conda environment
+2. Build conda environment (requires that you have [conda or miniconda](https://docs.conda.io/projects/conda/en/stable/user-guide/install/index.html) installed and configured on your machine.
 
 ``` shell
 conda env create -f env_config/snakeBat.yaml
 ```
 
-3. Activate conda environment and install required R packages not available via `conda`. 
+3. Activate conda environment and install required R packages not available via `conda`. **This only needs to be done during installation**
 
 ```shell
 # Activate conda environment
@@ -65,13 +65,21 @@ quit()
 ## Implementation
 To implement this pipeline, 3 things are **required**
 
-1. `Snakefile`: Directs the flow of the pipeline
+- `Snakefile`: Directs the flow of the pipeline
 
-2. `config.yaml`: Defines crucial variables related to the operation of the pipeline. Ensure you modify variables as needed in valid json format (see example `config.yaml` in repo.)
+- `config.yaml`: Defines crucial variables related to the operation of the pipeline. Ensure you modify variables as needed in valid json format (see example `config.yaml` in repo.)
 
-3. `folders.csv`: Defines the list of folders you want to iterate over. This is a 2 column **comma separated** file. The headers for this file should be sample,folder. See example `folders.csv` in repo.
+- `folders.csv`: Defines the list of folders you want to iterate over. This is a 2 column **comma separated** file. The headers for this file should be sample,folder. See example `folders.csv` in repo.
 
-Before running the pipeline, ensure you have the `snakeBat` conda environment activated. To implement the pipeline in the background via `nohup` with 4 cores, run the following command. This will generate a process ID (PID) for which you can track the status of your job. A file called `nohup.out` will contain Snakemake logging information that would normally be printed out to your terminal. Individual folder logs containing R code information will be stored in the `logs` folder, with one file per folder. Once you submit a nohup job, you can close your computer and the job will safely run in the background.
+To implement this pipeline:
+
+1. Activate the SnakeBat conda environment via your terminal you built during installation
+
+```shell
+conda activate SnakeBat
+```
+
+Once your conda environment is activated, the pipeline can be ran in the background via `nohup` with 4 cores, run the following command. This will generate a process ID (PID) for which you can track the status of your job. A file called `nohup.out` will contain Snakemake logging information that would normally be printed out to your terminal. Individual folder logs containing R code information will be stored in the `logs` folder, with one file per folder. Once you submit a nohup job, you can close your computer and the job will safely run in the background. Run the following command via your terminal within the SnakeBat folder:
 
 ``` shell
 nohup snakemake -s Snakefile --cores 4 &
@@ -108,6 +116,36 @@ To run live with 4 cores, run the following
 snakemake -s Snakefile --cores 4
 ```
 
+## Understanding the Outputs
+
+The SnakeBat pipeline generates two main output folders: `RMS_Power/` and 'Total_RMSE`
+
+```
+.
+└── SnakeBat/
+    ├── RMS_Power/
+    │   └── Sample_1/
+    │       └── YYYYMMDD/
+    └── Total_RMSE/
+        └── Sample_1/
+            └── YYYYMMDD/
+```
+
+**RMS_Power**
+
+Contains subfolders corresponding to each sample listed in `folders.csv`. Each subfolder contains additional subfolders representing each individual date encompassed in the data, named in YYYYMMDD format. Files within these folders contain csv files of RMS energy and adjusted RMS energy per second (each csv file is a 10 minute segment as per the AudioMoth settings.)
+
+**Total_RMSE**
+
+Contains subfolders corresponding to each sample listed in `folders.csv`. Each subfolder contains one csv file per date representing the daily RMS energy total. These files can be concatenated for easier viewing / data manipulation by navigating to the output folder of interest and running the following command. This command concatenates all files, keeping the header of the first file, and dropping the header from all other files. You can change the output file name to whatever you'd like. 
+
+```shell
+
+# Total summary concatenation (get one massive file of daily total RMS energy
+awk 'FNR==1 && NR!=1 { next } { print }' *.csv > combined_daily_totals.csv
+
+```
+
 ## Debugging
 **Checklist before you run**
 
@@ -124,6 +162,9 @@ conda activate snakeBat
 - If rerunning, did you unlock the snakemake directory and all outputs that would prevent pipeline from re-running (i.e., outputs from `rule all`?)
 
 ```shell
+
+# To "unlock" snakemake directory
 rm -r .snakemake
+rm done.txt # If rule all output exists
 ```
 
