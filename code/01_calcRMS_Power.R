@@ -57,51 +57,30 @@ message("--------------------------------------------------\n")
 
 #----- List the files
 files <- list.files(outputDir, full.names = TRUE)
-for (i in files) {
+library(parallel)
 
-    #----- Get the file basename
+nCores <- min(4, detectCores())
+mclapply(files, function(i) {
     fname <- basename(i)
-
-    #----- Extract date using regex _YYYYMMDD_
     date <- sub(".*_(\\d{8})_.*", "\\1", fname)
-
-    #----- Create a subfolder for this date
     dateDir <- file.path(outputDir, date)
-    if (!dir.exists(dateDir)) {
-        dir.create(dateDir)
-    } 
-    
-    #----- Read and clean
+    if (!dir.exists(dateDir)) dir.create(dateDir)
+
     curFile <- read.csv(i)
     colnames(curFile) <- c("X", "rmsEnergy")
-    
-    #----- Remove NAs
     curFile <- na.omit(curFile)
+    if (nrow(curFile) == 0) return(NULL)
 
-    #----- Check for empty files
-    if (nrow(curFile) == 0) {
-        message(paste("Skipping empty file:", i))
-    next
-    }
-    
-    #----- Remove X or X.1 columns if present
     if ("X" %in% colnames(curFile)) curFile$X <- NULL
     if ("X.1" %in% colnames(curFile)) {
         rownames(curFile) <- curFile$X.1
         curFile$X.1 <- NULL
     }
-    
-    #----- Ensure column name is rmsEnergy
     if ("rmsenergy" %in% colnames(curFile)) colnames(curFile) <- c("rmsEnergy")
-    
-    #----- Adjust RMS
-    minValue <- min(curFile$rmsEnergy)
-    absValue <- abs(minValue)
-    curFile$AdjustedValue <- absValue + curFile$rmsEnergy
-    
-    #----- Save
+
+    curFile$AdjustedValue <- curFile$rmsEnergy + abs(min(curFile$rmsEnergy))
     write.csv(curFile, file = file.path(dateDir, fname), row.names = TRUE)
-}
+}, mc.cores = nCores)
 
 #----- Clean files
 csv_files <- list.files(outputDir, pattern = "\\.csv$", full.names = TRUE)
@@ -133,16 +112,8 @@ if (!dir.exists(resultsPath)) {
 }
 
 #----- Apply function to all subFolders
-for (i in subdirs) {
-    message(paste("Calculating daily total for ", i))
-    date <- dates[i]
-    folder <- subdirs[i]
-    dateName <- basename(i)
-
-    #----- Apply the function
-    total <- calcTotalRMSE(i, dateName)
-
-    #----- Save csv
+mclapply(names(subdirs), function(dateName) {
+    folder <- subdirs[dateName]
+    total <- calcTotalRMSE(folder, dateName)
     write.csv(total, file = paste0(resultsPath, dateName, "_total_RMSE.csv"))
-
-}
+}, mc.cores = nCores)
