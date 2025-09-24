@@ -49,7 +49,7 @@ conda env create -f env_config/snakeBat.yaml
 
 ```shell
 # Activate conda environment
-conda activate snakeBat
+conda activate opt_snakeBat
 ```
 
 Installation of R packages only needs to be done once.
@@ -81,13 +81,13 @@ git clone https://github.com/mikemartinez99/SnakeBat
 2. Activate the SnakeBat conda environment via your terminal you built during installation
 
 ```shell
-conda activate SnakeBat
+conda activate opt_snakeBat
 ```
 
-3. Once your conda environment is activated, the pipeline can be ran in the background via `nohup` with 4 cores, run the following command. This will generate a process ID (PID) for which you can track the status of your job. A file called `nohup.out` will contain Snakemake logging information that would normally be printed out to your terminal. Individual folder logs containing R code information will be stored in the `logs` folder, with one file per folder. Once you submit a nohup job, you can close your computer and the job will safely run in the background. Run the following command via your terminal within the SnakeBat folder:
+3. Once your conda environment is activated, the pipeline can be ran in the background via `nohup` with 2 cores, run the following command. This will generate a process ID (PID) for which you can track the status of your job. A file called `nohup.out` will contain Snakemake logging information that would normally be printed out to your terminal. Individual folder logs containing R code information will be stored in the `logs` folder, with one file per folder. Once you submit a nohup job, you can close your computer and the job will safely run in the background. Run the following command via your terminal within the SnakeBat folder:
 
 ``` shell
-nohup snakemake -s Snakefile --cores 4 &
+nohup snakemake -s Snakefile --cores 2 &
 
 # Example output showing PID
 [1] 79417
@@ -99,7 +99,7 @@ If running in the background, you can check the job status with the following co
 jobs -l
 
 # Example output
-[1]  + 79417 running    nohup snakemake -s Snakefile --cores 4
+[1]  + 79417 running    nohup snakemake -s Snakefile --cores 2
 ```
 
 To kill a background job, run the following command, replacing `<PID> with your process ID
@@ -110,9 +110,9 @@ kill -9 <PID>
 kill -9 79417
 ```
 
-To run live with 4 cores, run the following
+To run live with 2 cores, run the following
 ```shell
-snakemake -s Snakefile --cores 4
+snakemake -s Snakefile --cores 2
 ```
 
 ## Understanding the Outputs
@@ -164,7 +164,7 @@ If running in the background with `nohup`, this log shows the progress of the pi
 - Did you activate the conda environment? 
 
 ```shell
-conda activate snakeBat
+conda activate opt_snakeBat
 ```
 - Are you in the SnakeBat working directory?
 - Do all paths in  `folders.csv` point to valid folder paths that exist and contain non-empty files?
