@@ -1,8 +1,9 @@
-name: snakeBat
+name: opt_snakeBat
 channels:
   - conda-forge
   - bioconda
   - defaults
+
 dependencies:
   # Python
   - python=3.10
@@ -14,3 +15,6 @@ dependencies:
   - r-base
   - r-dplyr
   - r-ggplot2
+  - r-data.table
+  - r-foreach
+  - r-doparallel
