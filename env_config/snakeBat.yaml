@@ -1,4 +1,4 @@
-name: opt_snakeBat
+name: snakeBat
 channels:
   - conda-forge
   - bioconda
@@ -18,3 +18,4 @@ dependencies:
   - r-data.table
   - r-foreach
   - r-doparallel
+  - r-lubridate

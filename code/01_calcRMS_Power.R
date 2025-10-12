@@ -1,6 +1,8 @@
 library(seewave)
+library(lubridate)
 library(tuneR)
 library(tools)
+
 source("code/BatFunctions.R")
 
 #----- Set command line arguments

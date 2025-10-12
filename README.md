@@ -16,6 +16,7 @@ Snakemake workflow for root mean square (RMS) acoustic energy processing of bat 
 - [Implementation](#implementation)
 - [Understanding the Outputs](#understanding-the-outputs)
 - [Debugging](#debugging)
+- [Changelog](#changelog)
 - [Contact](#contact)
 
 ## Introduction
@@ -192,6 +193,18 @@ Note that a Snakemake workflow will still not re-run even if unlocked if the exp
 ``` shell
 rm done.txt
 ```
+
+## Changelog
+
+*October 12th, 2025:* 
+
+- Adjusted date column in Total_RMSE output to be in YYYY-MM-DD format
+
+- Added `lubridate` package to conda to facilitate Julian date conversion
+
+- Adjusted `code/BatFunctions.R` to specify duration as `seewave::duration` to avoid conflict with `lubridate::duration`
+
+- Added calculation of Julian date
 
 ## Contact
 For questions regarding this pipeline feel free to submit an issue to the github repo or contact:

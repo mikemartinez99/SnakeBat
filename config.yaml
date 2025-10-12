@@ -9,7 +9,7 @@ folders: "folders.csv" # Keep the same
 #----- RMS Power calculation parameters
 segmentDuration: "1"
 fileType: ".WAV"
-samplingRate: "250000"
+samplingRate: 192000
 bwFilterFrom: "30000"
 bwFilterTo: "70000"
 

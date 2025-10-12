@@ -98,7 +98,7 @@ rmsPower <- function(dataDir,
                     output = "Wave") 
     
     #----- Number of measurements that will be taken for each audio file
-    num_segments <- floor(duration(wav) / segmentDuration) 
+    num_segments <- floor(seewave::duration(wav) / segmentDuration) 
     message(paste0("Number of segments: ", num_segments))
     
     #----- Preallocate results vector
@@ -187,7 +187,15 @@ calcTotalRMSE <- function(dataDirs, date) {
     } 
 
     #-----create a new column called date.   
-    x$date <- date
+    date <- as.character(date)
+    parts <- strsplit(date, "")[[1]]
+    year <- paste(parts[1:4], collapse = "")
+    month <- paste(parts[5:6], collapse = "")
+    day <- paste(parts[7:8], collapse = "")
+    formatDate <- paste(year, month, day, sep = "-")
+    x$date <- formatDate
+    x$Julian <- lubridate::yday(formatDate)
+    
     #print(colnames(x))
     #print(unique(x$date))
     
