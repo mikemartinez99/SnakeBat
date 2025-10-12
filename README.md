@@ -50,7 +50,7 @@ conda env create -f env_config/snakeBat.yaml
 
 ```shell
 # Activate conda environment
-conda activate opt_snakeBat
+conda activate snakeBat
 ```
 
 Installation of R packages only needs to be done once.
@@ -82,7 +82,7 @@ git clone https://github.com/mikemartinez99/SnakeBat
 2. Activate the SnakeBat conda environment via your terminal you built during installation
 
 ```shell
-conda activate opt_snakeBat
+conda activate snakeBat
 ```
 
 3. Once your conda environment is activated, the pipeline can be ran in the background via `nohup` with 2 cores, run the following command. This will generate a process ID (PID) for which you can track the status of your job. A file called `nohup.out` will contain Snakemake logging information that would normally be printed out to your terminal. Individual folder logs containing R code information will be stored in the `logs` folder, with one file per folder. Once you submit a nohup job, you can close your computer and the job will safely run in the background. Run the following command via your terminal within the SnakeBat folder:
@@ -165,7 +165,7 @@ If running in the background with `nohup`, this log shows the progress of the pi
 - Did you activate the conda environment? 
 
 ```shell
-conda activate opt_snakeBat
+conda activate snakeBat
 ```
 - Are you in the SnakeBat working directory?
 - Do all paths in  `folders.csv` point to valid folder paths that exist and contain non-empty files?
