@@ -1,2 +1,7 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Treat Snakemake files as Snakemake language instead of Python
+*.smk      linguist-language=Snakemake
+Snakefile  linguist-language=Snakemake
+snakefile  linguist-language=Snakemake
