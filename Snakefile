@@ -36,6 +36,7 @@ rule calc_RMS_Power:
         segDur = config["segmentDuration"],
         fileType = config["fileType"],
         samplingRate = config["samplingRate"],
+        gainOffset = config["gainOffset"],
         bwFilterFrom = config["bwFilterFrom"],
         bwFilterTo = config["bwFilterTo"]
     conda:
@@ -50,6 +51,7 @@ rule calc_RMS_Power:
             {params.segDur} \
             {params.fileType} \
             {params.samplingRate} \
+            {params.gainOffset} \ 
             {params.bwFilterFrom} \
             {params.bwFilterTo} \
             {output.rms_power} \

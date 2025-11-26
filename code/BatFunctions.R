@@ -20,6 +20,7 @@ rmsPower <- function(dataDir,
                      segmentDuration, 
                      fileType,
                      samplingRate, 
+                     gainOffset,
                      bwFilterFrom, 
                      bwFilterTo,
                      outputDir) {
@@ -122,10 +123,13 @@ rmsPower <- function(dataDir,
       rms_energy <- rms(MLV)
       
       #----- Convert to decibels and make relative to loudest possible signal (1)
-      rel_rmsenergy <- 10*log((rms_energy/1),base=10)
+      rel_rmsenergy <- 20*log((rms_energy/1),base=10)
+
+      #----- Add gain-offset
+      rel_rmsenergy_gainAdj <- rel_rmsenergy + gainOffset
       
       # Save results
-      rmsenergy[j] <- rel_rmsenergy
+      rmsenergy[j] <- rel_rmsenergy_gainAdj
     }
     
     write.csv(rmsenergy, out_file)
