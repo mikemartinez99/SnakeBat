@@ -49,6 +49,7 @@ rmsPower(dataDir = dataDir,
         segmentDuration = segmentDuration,
         fileType = fileType,
         samplingRate = samplingRate,
+        gainOffset = gainOffset,
         bwFilterFrom = bwFilterFrom,
         bwFilterTo = bwFilterTo,
         outputDir = outputDir)
