@@ -206,6 +206,14 @@ rm done.txt
 
 - Added calculation of Julian date
 
+*November 25th, 2025:*
+
+- Added gainOffset to config
+
+- Adjusted `BatFunctions.R` to take gainOffset
+
+- Adjusted `01_calcRMS_Power.R` to apply gain offset
+
 ## Contact
 For questions regarding this pipeline feel free to submit an issue to the github repo or contact:
 
