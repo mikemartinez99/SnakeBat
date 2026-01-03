@@ -49,14 +49,34 @@ rmsPower <- function(dataDir,
                           full.names = TRUE,
                           recursive = TRUE)
   
-  #----- Initialize progress bar for file processing
+  #----- Initialize progress tracking
   numFiles <- length(dataFiles)
-  pb <- txtProgressBar(min = 0, max = numFiles, style = 3)
+  message(paste0("Found ", numFiles, " files to process"))
+  
+  #----- Check if running interactively to decide on progress bar
+  useProgressBar <- interactive()
+  
+  #----- Initialize progress bar only if interactive
+  if (useProgressBar) {
+    pb <- txtProgressBar(min = 0, max = numFiles, style = 3)
+  }
+  
+  #----- Set up periodic status updates (every 10% or every 25 files, whichever is more frequent)
+  statusInterval <- max(1, min(floor(numFiles * 0.1), 25))
+  startTime <- Sys.time()
   
   #----- Iterate through the files
   for (f in seq_along(dataFiles)) {
     i <- dataFiles[f]
-    message(paste0("Processing", i))
+    
+    #----- Show periodic status updates
+    if (f == 1 || f %% statusInterval == 0 || f == numFiles) {
+      elapsed <- as.numeric(difftime(Sys.time(), startTime, units = "secs"))
+      percent <- round((f / numFiles) * 100, 1)
+      message(paste0(">>> Progress: ", f, "/", numFiles, " files (", percent, "%) | Elapsed: ", round(elapsed, 1), "s"))
+    }
+    
+    message(paste0("[", f, "/", numFiles, "] Processing: ", basename(i)))
     
     #----- Drop extension
     #short_name <- tools::file_path_sans_ext(i)
@@ -65,8 +85,8 @@ rmsPower <- function(dataDir,
     #----- Check if output file already exists
     out_file <- file.path(outputDir, paste0(short_name, "_RMSPower_1Second.csv"))
     if (file.exists(out_file)) {
-      message(paste("File already exists. Skipping:", out_file))
-      setTxtProgressBar(pb, f)
+      message(paste("  -> File already exists. Skipping:", basename(out_file)))
+      if (useProgressBar) setTxtProgressBar(pb, f)
       next
     }
     
@@ -75,11 +95,11 @@ rmsPower <- function(dataDir,
       tuneR::readWave(i)
     }, error = function(e) {
       if (grepl("non-conformable arguments", e$message)) {
-        warning(paste("Skipping file due to readBin error:", i))
+        warning(paste("  -> Skipping file due to readBin error:", basename(i)))
       } else {
-        warning(paste("Skipping file due to unknown error:", i, "\nError:", e$message))
+        warning(paste("  -> Skipping file due to unknown error:", basename(i), "\nError:", e$message))
       }
-      setTxtProgressBar(pb, f)
+      if (useProgressBar) setTxtProgressBar(pb, f)
       NULL  # Return NULL on error
     })
     
@@ -99,7 +119,7 @@ rmsPower <- function(dataDir,
     
     #----- Number of measurements that will be taken for each audio file
     num_segments <- floor(seewave::duration(wav) / segmentDuration) 
-    message(paste0("Number of segments: ", num_segments))
+    message(paste0("  -> Number of segments: ", num_segments))
     
     #----- Preallocate results vector
     rmsenergy <- numeric(num_segments) 
@@ -129,14 +149,21 @@ rmsPower <- function(dataDir,
     }
     
     write.csv(rmsenergy, out_file)
-    message(paste0("Output saved to ", outputDir))
+    message(paste0("  -> Output saved: ", basename(out_file)))
     
-    # Update progress bar after each file
-    setTxtProgressBar(pb, f)
+    # Update progress bar after each file (only if interactive)
+    if (useProgressBar) setTxtProgressBar(pb, f)
     
   }
   
-  close(pb)
+  # Close progress bar only if it was created
+  if (useProgressBar) close(pb)
+  
+  #----- Final status message
+  totalTime <- as.numeric(difftime(Sys.time(), startTime, units = "secs"))
+  message("--------------------------------------------------")
+  message(paste0(">>> COMPLETED: Processed ", numFiles, " files in ", round(totalTime, 1), " seconds (", round(totalTime/60, 1), " minutes)"))
+  message("--------------------------------------------------")
   
   
   
@@ -159,8 +186,6 @@ calcTotalRMSE <- function(dataDirs, date) {
   
   #-----iterate through each file in the i-th directory
   for (j in files) {
-    print(j)
-    
     #----- Read in the j-th dataframe as x
     x <- read.csv(j, header=TRUE)
     

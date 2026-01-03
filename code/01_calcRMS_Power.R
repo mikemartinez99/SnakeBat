@@ -95,7 +95,7 @@ message("--------------------------------------------------\n")
 
 #----- List subdirectories
 subdirs <- list.dirs(outputDir, recursive = FALSE, full.names = TRUE)
-message(subdirs)
+message(paste0("Found ", length(subdirs), " date subdirectories to process"))
 
 #----- Create a vector of dates that correspond to the subFolders
 dates <- basename(subdirs)
