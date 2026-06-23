@@ -1,7 +1,13 @@
-library(seewave)
-library(lubridate)
-library(tuneR)
-library(tools)
+#----- Suppress package startup messages and warnings
+suppressPackageStartupMessages({
+  library(seewave, quietly = TRUE, warn.conflicts = FALSE)
+  library(lubridate, quietly = TRUE, warn.conflicts = FALSE)
+  library(tuneR, quietly = TRUE, warn.conflicts = FALSE)
+  library(tools, quietly = TRUE, warn.conflicts = FALSE)
+})
+# Suppress package warnings globally, but allow our custom warnings
+old_warn <- getOption("warn")
+options(warn = -1)
 
 source("code/BatFunctions.R")
 
@@ -23,27 +29,23 @@ bwFilterFrom = as.numeric(args[6])
 bwFilterTo = as.numeric(args[7])
 outputDir = args[8]
 
-#----- Check that dataDir exists
-message("--------------------------------------------------")
-message("Checking that dataDir exists...")
+#----- Validate input directory
 if (!dir.exists(dataDir)) {
-    stop(paste(dataDir, "Does not exist or is empty!\n"))
-} else {
-    message(paste(dataDir, "exists!\n"))
+    stop(paste("ERROR: Data directory does not exist:", dataDir))
 }
-message("--------------------------------------------------\n")
 
-message("--------------------------------------------------")
-message("Starting RMS power calculation with the following arguments:")
-message(paste("\tdataDir:", dataDir))
-message(paste("\tsegmentDuration:", segmentDuration))
-message(paste("\tfileType:", fileType))
-message(paste("\tsamplingRate:", samplingRate))
-message(paste("\tgainOffset:", gainOffset))
-message(paste("\tbwFilterFrom:", bwFilterFrom))
-message(paste("\tbwFilterTo:", bwFilterTo))
-message(paste("\toutputDir:", outputDir))
-message("--------------------------------------------------\n")
+#----- Display configuration
+message("========================================")
+message("RMS Power Calculation Pipeline")
+message("========================================")
+message("Configuration:")
+message(paste("  Data Directory:    ", dataDir))
+message(paste("  Segment Duration:  ", segmentDuration, "seconds"))
+message(paste("  File Type:         ", fileType))
+message(paste("  Sampling Rate:     ", samplingRate, "Hz"))
+message(paste("  Band-pass Filter:  ", bwFilterFrom, "-", bwFilterTo, "Hz"))
+message(paste("  Output Directory:  ", outputDir))
+message("========================================")
 
 #----- Run the function
 rmsPower(dataDir = dataDir,
@@ -55,14 +57,16 @@ rmsPower(dataDir = dataDir,
         bwFilterTo = bwFilterTo,
         outputDir = outputDir)
 
-#----- Adjust RMS files
-message("--------------------------------------------------")
-message("Adjusting RMS files in output directory...")
-message("--------------------------------------------------\n")
+#----- Organize output files by date
+message("\n----------------------------------------")
+message("Organizing output files by date")
+message("----------------------------------------")
 
 #----- List the files
 files <- list.files(outputDir, full.names = TRUE)
-library(parallel)
+suppressPackageStartupMessages({
+  library(parallel, quietly = TRUE)
+})
 
 nCores <- min(4, detectCores())
 mclapply(files, function(i) {
@@ -91,14 +95,12 @@ mclapply(files, function(i) {
 csv_files <- list.files(outputDir, pattern = "\\.csv$", full.names = TRUE)
 file.remove(csv_files)
 
-#----- Adjust RMS files
-message("--------------------------------------------------")
-message("Collating results...")
-message("--------------------------------------------------\n")
-
-#----- List subdirectories
+#----- Collate results by date
+message("\n----------------------------------------")
+message("Collating results by date")
+message("----------------------------------------")
 subdirs <- list.dirs(outputDir, recursive = FALSE, full.names = TRUE)
-message(subdirs)
+message(paste("Processing", length(subdirs), "date subdirectories"))
 
 #----- Create a vector of dates that correspond to the subFolders
 dates <- basename(subdirs)
@@ -122,3 +124,10 @@ mclapply(names(subdirs), function(dateName) {
     total <- calcTotalRMSE(folder, dateName)
     write.csv(total, file = paste0(resultsPath, dateName, "_total_RMSE.csv"))
 }, mc.cores = nCores)
+
+# Restore warning level
+options(warn = old_warn)
+
+message("\n========================================")
+message("Pipeline completed successfully")
+message("========================================")

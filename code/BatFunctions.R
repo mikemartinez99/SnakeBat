@@ -24,18 +24,14 @@ rmsPower <- function(dataDir,
                      bwFilterFrom, 
                      bwFilterTo,
                      outputDir) {
-  #----- Check raw data dir exists
+  #----- Validate directories
   if (!dir.exists(dataDir)) {
-    stop("Data directory does not exist!")
-  } else {
-    message("Raw data directory located!")
+    stop("ERROR: Data directory does not exist")
   }
   
-  #----- Check output directory exists, if not, create
   if (!dir.exists(outputDir)) {
-    dir.create(outputDir)
-  } else {
-    message("Output directory located!")
+    dir.create(outputDir, recursive = TRUE)
+    message("Created output directory")
   }
   
   #----- Check that file type is valid option
@@ -43,21 +39,45 @@ rmsPower <- function(dataDir,
   #  stop("fileType must be one of WAV or wav!")
   #}
   
-  #----- List files
-  message("Loading in data files...")
+  #----- Discover input files
   dataFiles <- list.files(dataDir,
                           pattern = fileType,
                           full.names = TRUE,
                           recursive = TRUE)
   
-  #----- Initialize progress bar for file processing
   numFiles <- length(dataFiles)
-  pb <- txtProgressBar(min = 0, max = numFiles, style = 3)
+  if (numFiles == 0) {
+    stop("ERROR: No files found matching pattern: ", fileType)
+  }
+  
+  message(paste("Found", numFiles, "audio file(s) to process"))
+  
+  #----- Check if running interactively to decide on progress bar
+  useProgressBar <- interactive()
+  
+  #----- Initialize progress bar only if interactive
+  if (useProgressBar) {
+    pb <- txtProgressBar(min = 0, max = numFiles, style = 3)
+  }
+  
+  #----- Set up periodic status updates (every 10% or every 25 files, whichever is more frequent)
+  statusInterval <- max(1, min(floor(numFiles * 0.1), 25))
+  startTime <- Sys.time()
   
   #----- Iterate through the files
   for (f in seq_along(dataFiles)) {
     i <- dataFiles[f]
-    message(paste0("Processing", i))
+    
+    #----- Show periodic status updates
+    if (f == 1 || f %% statusInterval == 0 || f == numFiles) {
+      elapsed <- as.numeric(difftime(Sys.time(), startTime, units = "secs"))
+      percent <- round((f / numFiles) * 100, 1)
+      rate <- ifelse(elapsed > 0, round(f / elapsed, 2), 0)
+      message(sprintf("Progress: %d/%d files (%.1f%%) | Elapsed: %.1fs | Rate: %.2f files/s", 
+                      f, numFiles, percent, elapsed, rate))
+    }
+    
+    message(sprintf("[%d/%d] Processing: %s", f, numFiles, basename(i)))
     
     #----- Drop extension
     #short_name <- tools::file_path_sans_ext(i)
@@ -66,22 +86,22 @@ rmsPower <- function(dataDir,
     #----- Check if output file already exists
     out_file <- file.path(outputDir, paste0(short_name, "_RMSPower_1Second.csv"))
     if (file.exists(out_file)) {
-      message(paste("File already exists. Skipping:", out_file))
-      setTxtProgressBar(pb, f)
+      message(sprintf("  Skipping (already processed): %s", basename(out_file)))
+      if (useProgressBar) setTxtProgressBar(pb, f)
       next
     }
     
-    #----- Read in the file
+    #----- Read audio file
     raw.wav <- tryCatch({
-      tuneR::readWave(i)
+      suppressWarnings(tuneR::readWave(i))
     }, error = function(e) {
       if (grepl("non-conformable arguments", e$message)) {
-        warning(paste("Skipping file due to readBin error:", i))
+        message(sprintf("  WARNING: Skipping file (readBin error): %s", basename(i)))
       } else {
-        warning(paste("Skipping file due to unknown error:", i, "\nError:", e$message))
+        message(sprintf("  WARNING: Skipping file (error: %s): %s", e$message, basename(i)))
       }
-      setTxtProgressBar(pb, f)
-      NULL  # Return NULL on error
+      if (useProgressBar) setTxtProgressBar(pb, f)
+      NULL
     })
     
     # Check if readWave failed
@@ -91,16 +111,22 @@ rmsPower <- function(dataDir,
     
 
     #----- Apply band-pass filter around echolocation range
-    wav <- bwfilter(raw.wav, 
-                    f = samplingRate, # sampling rate in Hz
-                    from = bwFilterFrom, # lower limit of band-pass filter in Hz
-                    to = bwFilterTo, # upper limit of band-pass filter in Hz
-                    bandpass = T,#indicates whether band-pass (T) or band-stop filter (Null)
-                    output = "Wave") 
+    wav <- suppressWarnings({
+      bwfilter(raw.wav, 
+               f = samplingRate, # sampling rate in Hz
+               from = bwFilterFrom, # lower limit of band-pass filter in Hz
+               to = bwFilterTo, # upper limit of band-pass filter in Hz
+               bandpass = T,#indicates whether band-pass (T) or band-stop filter (Null)
+               output = "Wave")
+    }) 
     
-    #----- Number of measurements that will be taken for each audio file
-    num_segments <- floor(seewave::duration(wav) / segmentDuration) 
-    message(paste0("Number of segments: ", num_segments))
+    #----- Calculate number of segments
+    num_segments <- floor(suppressWarnings(seewave::duration(wav)) / segmentDuration)
+    if (num_segments == 0) {
+      message(sprintf("  WARNING: File too short for processing: %s", basename(i)))
+      if (useProgressBar) setTxtProgressBar(pb, f)
+      next
+    }
     
     #----- Preallocate results vector
     rmsenergy <- numeric(num_segments) 
@@ -133,14 +159,24 @@ rmsPower <- function(dataDir,
     }
     
     write.csv(rmsenergy, out_file)
-    message(paste0("Output saved to ", outputDir))
+    message(sprintf("  Completed: %s (%d segments)", basename(out_file), num_segments))
     
-    # Update progress bar after each file
-    setTxtProgressBar(pb, f)
+    # Update progress bar after each file (only if interactive)
+    if (useProgressBar) setTxtProgressBar(pb, f)
     
   }
   
-  close(pb)
+  # Close progress bar only if it was created
+  if (useProgressBar) close(pb)
+  
+  #----- Final summary
+  totalTime <- as.numeric(difftime(Sys.time(), startTime, units = "secs"))
+  avgTime <- totalTime / numFiles
+  message("----------------------------------------")
+  message(sprintf("COMPLETED: Processed %d file(s)", numFiles))
+  message(sprintf("  Total time:   %.1f seconds (%.1f minutes)", totalTime, totalTime/60))
+  message(sprintf("  Average time: %.2f seconds per file", avgTime))
+  message("----------------------------------------")
   
   
   
@@ -163,8 +199,6 @@ calcTotalRMSE <- function(dataDirs, date) {
   
   #-----iterate through each file in the i-th directory
   for (j in files) {
-    print(j)
-    
     #----- Read in the j-th dataframe as x
     x <- read.csv(j, header=TRUE)
     
@@ -172,22 +206,16 @@ calcTotalRMSE <- function(dataDirs, date) {
     #check dimensions of the j-th dataframe
     #print(dim(x))
     
-    #----- Check that each dataframe has at least 1 row of data, skip empty dataframes
+    #----- Validate data structure
     if (nrow(x) == 0) {
-      message(paste(j, " has 0 rows."))
+      message(sprintf("WARNING: Empty file skipped: %s", basename(j)))
       next()
     }
     
-    #----- Check that column names needed for summation are present part 1
-    neededCols1 <- c("rmsEnergy")
-    if (!neededCols1 %in% colnames(x)) {
-      stop("rmsEnergy missing in data")
-    } 
-    
-    #----- Check that column names needed for summation are present part 2
-    neededCols2 <- c("AdjustedValue")
-    if (!neededCols2 %in% colnames(x)) {
-      stop("AdjustedValue missing in data")
+    requiredCols <- c("rmsEnergy", "AdjustedValue")
+    missingCols <- setdiff(requiredCols, colnames(x))
+    if (length(missingCols) > 0) {
+      stop(sprintf("ERROR: Missing required columns in %s: %s", basename(j), paste(missingCols, collapse = ", ")))
     } 
 
     #-----create a new column called date.   
