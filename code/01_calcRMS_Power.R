@@ -15,8 +15,8 @@ source("code/BatFunctions.R")
 args <- commandArgs(trailingOnly = TRUE)
 
 #----- Check that all arguments are supplied
-if (length(args) < 7 | length(args) > 7) {
-    stop("Usage: RScript 01_calcRMS_Power.R <dataDir> <segmentDuration> <fileType> <samplingRate> <bwFilterFrom> <bwFilterTo> <outputDir>")  
+if (length(args) < 8 | length(args) > 7) {
+    stop("Usage: RScript 01_calcRMS_Power.R <dataDir> <segmentDuration> <fileType> <samplingRate> <gainOffset> <bwFilterFrom> <bwFilterTo> <outputDir>")  
 }
 
 #----- Set variables based on command line arguments
@@ -24,9 +24,10 @@ dataDir = args[1]
 segmentDuration = as.numeric(args[2])
 fileType = args[3]
 samplingRate = as.numeric(args[4])
-bwFilterFrom = as.numeric(args[5])
-bwFilterTo = as.numeric(args[6])
-outputDir = args[7]
+gainOffset = as.numeric(args[5])
+bwFilterFrom = as.numeric(args[6])
+bwFilterTo = as.numeric(args[7])
+outputDir = args[8]
 
 #----- Validate input directory
 if (!dir.exists(dataDir)) {
@@ -51,6 +52,7 @@ rmsPower(dataDir = dataDir,
         segmentDuration = segmentDuration,
         fileType = fileType,
         samplingRate = samplingRate,
+        gainOffset = gainOffset,
         bwFilterFrom = bwFilterFrom,
         bwFilterTo = bwFilterTo,
         outputDir = outputDir)

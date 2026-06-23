@@ -10,6 +10,7 @@ folders: "folders.csv" # Keep the same
 segmentDuration: "1"
 fileType: ".WAV"
 samplingRate: 192000
+gainOffset: 6.3
 bwFilterFrom: "30000"
 bwFilterTo: "70000"
 
