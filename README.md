@@ -1,14 +1,12 @@
 # SnakeBat Pipeline
+<img src="img/SnakeBat_logo.png" alt="SnakeBat Logo" width="400" height="150" align="right" style="border: none;" />
+
 Snakemake workflow for root mean square (RMS) acoustic energy processing of bat data.
 
 ![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)
 ![Snakemake](https://img.shields.io/badge/Snakemake-v7.32.4-red?logo=snakemake&logoColor=white)
 ![Python Version](https://img.shields.io/badge/python-3.10.18-blue)
 ![R Version](https://img.shields.io/badge/R-4.4.1-blue)
-
-
-
-<img src="img/SnakeBat_logo.png" alt="Description" width = 700 height = 450 style="border: none;" />
 
 # Table of Contents
 - [Introduction](#introduction)
