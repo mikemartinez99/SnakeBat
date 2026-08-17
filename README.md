@@ -13,7 +13,6 @@ Snakemake workflow for root mean square (RMS) acoustic energy processing of bat 
 - [Introduction](#introduction)
 - [Installation](#installation)
 - [Implementation](#implementation)
-- [Parameters](#parameters)
 - [Understanding the Outputs](#understanding-the-outputs)
 - [Debugging](#debugging)
 - [Changelog](#changelog)
@@ -103,13 +102,13 @@ To implement this pipeline, 3 things are **required**
 
 - `Snakefile`: Directs the flow of the pipeline
 
-- `config.yaml`: Defines crucial variables related to the operation of the pipeline. Ensure you modify variables as needed (see example `config.yaml` in repo). Every setting is documented under [Parameters](#parameters), with a full reference in [wiki/Parameters.md](wiki/Parameters.md).
+- `config.yaml`: Defines crucial variables related to the operation of the pipeline. Ensure you modify variables as needed in valid json format (see example `config.yaml` in repo.)
 
 - `folders.csv`: Defines the list of folders you want to iterate over. This is a 2 column **comma separated** file. The headers for this file should be sample,folder. See example `folders.csv` in repo.
 
 To implement this pipeline:
 
-1. Edit `config.yaml` and `folders.csv` for your data, and **save them**. See [Parameters](#parameters) for what each setting does. An unsaved `config.yaml` is the most common cause of a run that completes with the wrong settings.
+1. Edit `config.yaml` and `folders.csv` for your data, and **save them**. An unsaved `config.yaml` is the most common cause of a run that completes with the wrong settings.
 
 2. Run the pipeline in the background via `nohup` from within the SnakeBat folder. This generates a job number you can use to track it. A file called `nohup.out` will contain the Snakemake logging that would normally print to your terminal, and per-sample R logs are written to the `logs` folder, one file per sample. Once submitted, you can close your computer and the job will keep running.
 
@@ -171,35 +170,7 @@ nohup pixi run pipeline --cores 8 &
 
 If you want an interactive shell inside the environment — to explore results in R, for instance — use `pixi shell`, and `exit` to leave.
 
-## Parameters
-
-Every setting lives in `config.yaml`, except the list of sites, which lives in `folders.csv`. These two files are the only ones you edit to run the pipeline on your own data.
-
-| Parameter | Our default | What it controls |
-|-----------|-------------|------------------|
-| `folders` | `"folders.csv"` | Which file lists the sites to process |
-| `segmentDuration` | `"1"` | Seconds of audio per measurement |
-| `fileType` | `".WAV"` | Which files to look for. Case sensitive |
-| `samplingRate` | `192000` | Recorder sampling rate in Hz. Must match the field setting |
-| `gainOffset` | `6.3` | Fixed dB correction for recorder gain |
-| `bwFilterFrom` | `"30000"` | Bottom of the frequency band to keep, in Hz |
-| `bwFilterTo` | `"70000"` | Top of the frequency band to keep, in Hz |
-
-> **If you do not need a gain adjustment, set `gainOffset: 0`.**
->
-> ```yaml
-> gainOffset: 0
-> ```
->
-> Zero adds nothing and leaves the raw dBFS values untouched. **Do not delete the line or leave it blank** — a blank value is read as `NA` in R, and `NA` added to a measurement makes the measurement `NA`, which then propagates silently into your nightly totals.
-
-The filter band is the setting with real scientific consequence: it decides what counts as a bat. Widening it admits noise, narrowing it may exclude species. Change it deliberately — the values used are printed at the top of every run log, so a run is self-documenting.
-
-**Full reference:** [Parameters](wiki/Parameters.md) — what each setting does, how to choose it, the constraints, and what breaks if it is wrong. Also covers `folders.csv` and the plot appearance constants.
-
 ## Understanding the Outputs
-
-**Full reference:** [Understanding the Outputs](wiki/Understanding-the-Outputs.md) — every file the pipeline writes, what each column means, and how to read a run log.
 
 Every pipeline output is written under a single `results/` folder. Nothing is written to the top level of the repository.
 
@@ -381,4 +352,3 @@ For questions regarding this pipeline feel free to submit an issue to the github
 **Mike Martinez M.S.** - *Dartmouth Center for Quantitative Biology, Genomic Data Science Core*
 
 mike.j.martinez99@gmail.com
-
