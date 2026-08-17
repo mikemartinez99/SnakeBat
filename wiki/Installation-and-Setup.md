@@ -46,7 +46,7 @@ Every command from here on is run from inside this `SnakeBat` folder. If a comma
 
 ---
 
-## 3. Install the software environment
+## 3. Install the software environment (once per computer)
 
 ```bash
 pixi install
@@ -54,7 +54,7 @@ pixi install
 
 This downloads R, Python, Snakemake and the R packages, and writes them into a hidden `.pixi/` folder inside the project. Expect it to take several minutes and a few hundred megabytes the first time. It is only slow once; afterwards it is near-instant.
 
-Then install the two R packages that come from CRAN rather than conda:
+Then install the two R packages that come from CRAN rather than conda: (again, once per computer)
 
 ```bash
 pixi run setup-r

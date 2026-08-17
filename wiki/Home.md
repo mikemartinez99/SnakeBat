@@ -53,5 +53,3 @@ nohup pixi run pipeline &
 ```
 
 See [Installation and Setup](Installation-and-Setup) for the same steps explained in full, and [Snakemake Configuration](Snakemake-Configuration) for how to set up `config.yaml` and `folders.csv` before running.
-
-> The older conda route (`conda env create -f env_config/snakeBat.yaml` plus a manual `install.packages()`) still works and is documented in [Installation and Setup](Installation-and-Setup). Pixi is recommended because `pixi.lock` pins every resolved package version, which is what makes results reproducible across machines.
