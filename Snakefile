@@ -53,7 +53,7 @@ rule calc_RMS_Power:
     shell: """
     
         #----- Run the RMS Power code
-        RScript {params.rms_code} \
+        Rscript {params.rms_code} \
             {params.folder} \
             {params.segDur} \
             {params.fileType} \
