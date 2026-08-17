@@ -107,3 +107,4 @@ cmd = "snakemake -s Snakefile --unlock"
 [tasks.dag]
 description = "Write the workflow DAG to img/dag.png (requires graphviz)"
 cmd = "snakemake -s Snakefile --dag | dot -Tpng > img/dag.png"
+
