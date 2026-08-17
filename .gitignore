@@ -11,3 +11,4 @@ results/
 # Synthetic test data (regenerate with code/make_dummy_data.R)
 dummy_data/
 folders_dummy.csv
+pixi.lock
