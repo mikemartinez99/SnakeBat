@@ -7,3 +7,7 @@ PAB_BB_2025/
 
 # Pipeline outputs (all under results/ since 2026-08-17)
 results/
+
+# Synthetic test data (regenerate with code/make_dummy_data.R)
+dummy_data/
+folders_dummy.csv
