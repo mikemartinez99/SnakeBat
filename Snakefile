@@ -51,7 +51,7 @@ rule calc_RMS_Power:
             {params.segDur} \
             {params.fileType} \
             {params.samplingRate} \
-            {params.gainOffset} \ 
+            {params.gainOffset} \
             {params.bwFilterFrom} \
             {params.bwFilterTo} \
             {output.rms_power} \
