@@ -46,8 +46,8 @@ rule calc_RMS_Power:
         gainOffset = config["gainOffset"],
         bwFilterFrom = config["bwFilterFrom"],
         bwFilterTo = config["bwFilterTo"]
-    conda:
-        "env_config/snakeBat.yaml",
+    #conda:
+     #   "env_config/snakeBat.yaml",
     log:
         "logs/{sample}.log"
     shell: """
