@@ -7,6 +7,7 @@ Snakemake workflow for root mean square (RMS) acoustic energy processing of bat 
 ![Snakemake](https://img.shields.io/badge/Snakemake-v7.32.4-red?logo=snakemake&logoColor=white)
 ![Python Version](https://img.shields.io/badge/python-3.10.18-blue)
 ![R Version](https://img.shields.io/badge/R-4.4.1-blue)
+![Environment](https://img.shields.io/badge/environment-pixi-orange)
 
 # Table of Contents
 - [Introduction](#introduction)
@@ -28,37 +29,69 @@ This repository contains a simple one-rule Snakemake pipeline for calculating ro
 
 **Requirements**
 
-All software requirements are listed in the [environment configuration file](https://github.com/mikemartinez99/SnakeBat/edit/main/env_config/snakeBat.yaml)
+All software requirements are declared in [`pixi.toml`](https://github.com/mikemartinez99/SnakeBat/blob/main/pixi.toml). 
 
 ## Installation
 
-1. Clone the github repository in a location of your choosing.
+The pipeline uses [pixi](https://pixi.sh) to manage its software. Pixi installs the exact versions of R, Python, Snakemake and every R package into a folder inside the project — it does not touch the rest of your system, and you do not need R or conda installed beforehand.
+
+1. Install pixi. **Once per computer.**
+
+```shell
+curl -fsSL https://pixi.sh/install.sh | sh
+```
+
+On Windows, use PowerShell instead:
+
+```shell
+powershell -ExecutionPolicy ByPass -c "irm -useb https://pixi.sh/install.ps1 | iex"
+```
+
+Close your terminal and open a new one, then check it worked. If you get `command not found`, reopening the terminal is what fixes it — the installer changed your PATH.
+
+```shell
+pixi --version
+```
+
+2. Clone the github repository in a location of your choosing, and move into it.
 
 ```shell
 git clone https://github.com/mikemartinez99/SnakeBat
+cd SnakeBat
 ```
 
-2. Build conda environment (requires that you have [conda or miniconda](https://docs.conda.io/projects/conda/en/stable/user-guide/install/index.html) installed and configured on your machine.
-
-``` shell
-conda env create -f env_config/snakeBat.yaml
-```
-
-3. Activate conda environment and install required R packages not available via `conda`. **This only needs to be done during installation**
+3. Install the software environment. **Once per repository clone.** This takes a few minutes and a few hundred megabytes the first time; it is near-instant thereafter.
 
 ```shell
-# Activate conda environment
-conda activate snakeBat
+pixi install
 ```
 
-Installation of R packages only needs to be done once.
+4. Install the two R packages that come from CRAN. **Once per clone.**
+
 ```shell
-# Start an interactive R session
-R
-install.packages("tuneR")
-install.packages("seewave")
-quit()
+pixi run setup-r
 ```
+
+`tuneR` and `seewave` are the packages that read `.WAV` files and apply the bandpass filter, and neither is published as a conda package on any channel — so they are fetched from CRAN and installed into the project environment. The command is safe to repeat; if they are already present it says so and exits.
+
+5. Confirm the environment is complete.
+
+```shell
+pixi run check
+```
+
+A healthy environment prints:
+
+```shell
+R  ok: tuneR
+R  ok: seewave
+R  ok: lubridate
+py ok: pandas 2.3.3
+7.32.4
+```
+
+
+</details>
 
 ## Implementation
 To implement this pipeline, 3 things are **required**
@@ -71,37 +104,36 @@ To implement this pipeline, 3 things are **required**
 
 To implement this pipeline:
 
-1. Clone the github repository in a location of your choosing.
+1. Edit `config.yaml` and `folders.csv` for your data, and **save them**. An unsaved `config.yaml` is the most common cause of a run that completes with the wrong settings.
 
-```shell
-git clone https://github.com/mikemartinez99/SnakeBat
-```
-
-2. Activate the SnakeBat conda environment via your terminal you built during installation
-
-```shell
-conda activate snakeBat
-```
-
-3. Once your conda environment is activated, the pipeline can be ran in the background via `nohup` with 2 cores, run the following command. This will generate a process ID (PID) for which you can track the status of your job. A file called `nohup.out` will contain Snakemake logging information that would normally be printed out to your terminal. Individual folder logs containing R code information will be stored in the `logs` folder, with one file per folder. Once you submit a nohup job, you can close your computer and the job will safely run in the background. Run the following command via your terminal within the SnakeBat folder:
+2. Run the pipeline in the background via `nohup` from within the SnakeBat folder. This generates a job number you can use to track it. A file called `nohup.out` will contain the Snakemake logging that would normally print to your terminal, and per-sample R logs are written to the `logs` folder, one file per sample. Once submitted, you can close your computer and the job will keep running.
 
 ``` shell
-nohup snakemake -s Snakefile --cores 2 &
+nohup pixi run pipeline &
 
-# Example output showing PID
+# Example output showing the job number
 [1] 79417
 ```
 
-If running in the background, you can check the job status with the following command:
+There is no environment to activate. `pixi run` uses the project environment automatically, and installs it first if it is missing.
+
+To check the status of a background job:
 
 ```shell
 jobs -l
 
 # Example output
-[1]  + 79417 running    nohup snakemake -s Snakefile --cores 2
+[1]  + 79417 running    nohup pixi run pipeline
 ```
 
-To kill a background job, run the following command, replacing `<PID> with your process ID
+To watch a sample's progress as it runs:
+
+```shell
+tail -f logs/AM78_M_LGE.log
+```
+
+To kill a background job, replacing `<PID>` with your job number:
+
 ```shell
 kill -9 <PID>
 
@@ -109,10 +141,30 @@ kill -9 <PID>
 kill -9 79417
 ```
 
-To run live with 2 cores, run the following
+To run live in the foreground:
+
 ```shell
-snakemake -s Snakefile --cores 2
+pixi run pipeline
 ```
+
+To use more cores than the default of 2 — worth doing on a large dataset, since samples process simultaneously:
+
+```shell
+nohup pixi run pipeline --cores 8 &
+```
+
+**Other available tasks**
+
+| Command | What it does |
+|---------|--------------|
+| `pixi run pipeline` | Run the pipeline |
+| `pixi run dry-run` | List what *would* run, without running it |
+| `pixi run check` | Confirm every dependency is importable |
+| `pixi run unlock` | Clear a stale Snakemake lock after an interrupted run |
+| `pixi run setup-r` | Reinstall the CRAN R packages |
+| `pixi task list` | Show every available task |
+
+If you want an interactive shell inside the environment — to explore results in R, for instance — use `pixi shell`, and `exit` to leave.
 
 ## Understanding the Outputs
 
@@ -146,7 +198,27 @@ awk 'FNR==1 && NR!=1 { next } { print }' *.csv > combined_daily_totals.csv
 ```
 
 **logs folder**
-Contains a log file for each sample. Essentially, this is the R console log which shows the progress from the main R function that applied bandpass filtering. You can see the percentage of your sample that is completed by viewing these logs. 
+
+Contains one log file per sample. Each log opens with the settings the run used, then prints one timestamped line per recording, then an end-of-run summary. A single line looks like:
+
+```shell
+[10:25:52] 3/9 ( 33%)  20250529_201424   ok    331 segments in 6.9s
+```
+
+The summary tells you what was and was not processed:
+
+```shell
+  Files found         9
+  Processed           7
+  Skipped (cached)    0
+  Skipped (short)     0
+  Skipped (empty)     2
+  Failed to read      0
+  Segments written    3,606
+  Wall time           1m 15s
+```
+
+`Skipped (empty)` means the recorder wrote a file header with no audio behind it — usually a flat battery or a full SD card, and worth investigating if the count is more than a couple. `Failed to read` marks corrupted files; search the log for `FAIL` to see which. 
 
 **nohup.out**
 If running in the background with `nohup`, this log shows the progress of the pipeline and verbose Snakemake logging (i.e., number of jobs per rule, etc...)
@@ -160,10 +232,10 @@ If running in the background with `nohup`, this log shows the progress of the pi
 ## Debugging
 **Checklist before you run**
 
-- Did you activate the conda environment? 
+- Is the environment complete? There is nothing to activate, but this confirms every dependency is importable:
 
 ```shell
-conda activate snakeBat
+pixi run check
 ```
 - Are you in the SnakeBat working directory?
 - Do all paths in  `folders.csv` point to valid folder paths that exist and contain non-empty files?
@@ -178,7 +250,7 @@ If a workflow crashes, gets killed, or is stopped abruptly, Snakemake may leave 
 1. The clean way (run this in your terminal within the SnakeBat directory)
 
 ```shell
-snakemake --unlock
+pixi run unlock
 ```
 
 2. The quick and dirty way
@@ -211,6 +283,20 @@ rm done.txt
 - Adjusted `BatFunctions.R` to take gainOffset
 
 - Adjusted `01_calcRMS_Power.R` to apply gain offset
+
+*August 17th, 2026:*
+
+- Added `pixi.toml`; pixi is now the recommended way to install and run the pipeline. The conda route still works and is documented under Installation
+
+- Added a `container:` directive to the `Snakefile` for running with `--use-singularity` on a cluster
+
+- Reworked logging: one line per recording instead of three, wall-clock timestamps, an ETA heartbeat on long runs, and an end-of-run summary that counts processed / skipped / failed files separately
+
+- Empty recordings (0 samples) are now reported distinctly from short ones, since they indicate a recorder problem rather than a short file
+
+- Fixed a trailing space after a line-continuation backslash in the `Snakefile` that truncated the `RScript` call to six arguments
+
+- Fixed an always-true argument count check in `01_calcRMS_Power.R` (`< 8 | > 7`, which is satisfied by every possible value)
 
 ## Contact
 For questions regarding this pipeline feel free to submit an issue to the github repo or contact:
