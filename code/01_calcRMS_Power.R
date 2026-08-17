@@ -117,10 +117,14 @@ names(subdirs) <- dates
 names(dates) <- dates
 
 #----- New output dir
-opDir <- "Total_RMSE/"
+#----- Derived from outputDir rather than hardcoded, so Total_RMSE always lands
+#      beside RMS_Power wherever the Snakefile puts it:
+#        results/RMS_Power/<sample>.RMS_Power  ->  results/Total_RMSE/
+opDir <- file.path(dirname(dirname(outputDir)), "Total_RMSE")
 if (!dir.exists(opDir)) {
-    dir.create(opDir)
+    dir.create(opDir, recursive = TRUE)
 }
+opDir <- paste0(opDir, "/")
 sample <- basename(outputDir)
 resultsPath <- paste0(opDir, sample, "/")
 if (!dir.exists(resultsPath)) {

@@ -19,13 +19,17 @@ Snakemake workflow for root mean square (RMS) acoustic energy processing of bat 
 - [Contact](#contact)
 
 ## Introduction
-This repository contains a simple one-rule Snakemake pipeline for calculating root mean square (RMS) power from bat acoustic energy recordings. RMS power is a widely used measure of signal intensity, allowing researchers to quantify the amplitude of bat echolocation calls over time. By automating RMS calcuations across large datasets, this workflow facilitates the analysis of bat activity, call structure, and energy distribution in acoustic monitoring studies in a highly reproducible manner.
+This repository contains a Snakemake pipeline for calculating root mean square (RMS) power from bat acoustic energy recordings. RMS power is a widely used measure of signal intensity, allowing researchers to quantify the amplitude of bat echolocation calls over time. By automating RMS calcuations across large datasets, this workflow facilitates the analysis of bat activity, call structure, and energy distribution in acoustic monitoring studies in a highly reproducible manner.
 
 **Features**
 - Automated processing of .WAV files from multiple sessions (including continuous data, with automatic date partitioning)
 - Automated segmenting of recordings based on user-defined durations with flexible bandpass filtering
 - Generate RMS and adjusted RMS energy values
 - Collate RMS metrics on a per-date basis for continuous data
+- Combine each site's nightly files into a single flat CSV
+- Produce a cross-site summary table, one row per site per night
+- Plot nightly RMS energy against Julian date, one figure per site
+- Assemble every rule's log into one ordered run log
 
 **Requirements**
 
@@ -168,21 +172,30 @@ If you want an interactive shell inside the environment — to explore results i
 
 ## Understanding the Outputs
 
-The SnakeBat pipeline generates two main output folders: `RMS_Power/` and 'Total_RMSE`
+Every pipeline output is written under a single `results/` folder. Nothing is written to the top level of the repository.
 
 ``` shell
 .
 └── SnakeBat/
-    ├── RMS_Power/
-    │   └── Sample_1/
-    │       └── YYYYMMDD/
-    ├── Total_RMSE/
-    │   └── Sample_1/
-    │       └── YYYYMMDD/
-    ├── Logs/
+    ├── results/
+    │   ├── RMS_Power/
+    │   │   └── Sample_1.RMS_Power/
+    │   │       └── YYYYMMDD/          # one CSV per recording, per-second values
+    │   ├── Total_RMSE/
+    │   │   └── Sample_1.RMS_Power/
+    │   │       └── YYYYMMDD_total_RMSE.csv
+    │   ├── Summary/
+    │   │   ├── Sample_1_combined_daily_totals.csv
+    │   │   └── all_samples_nightly_totals.csv
+    │   ├── plots/
+    │   │   └── Sample_1_nightly_rmse.png
+    │   └── full_pipeline_run_log.log  # every rule log, concatenated in order
+    ├── logs/
     │   └── Sample_1.log
     └── nohup.out
 ```
+
+The root is set by a single `RESULTS` variable at the top of the `Snakefile`. Change that one string to send results elsewhere.
 
 **RMS_Power**
 
@@ -190,12 +203,24 @@ Contains subfolders corresponding to each sample listed in `folders.csv`. Each s
 
 **Total_RMSE**
 
-Contains subfolders corresponding to each sample listed in `folders.csv`. Each subfolder contains one csv file per date representing the daily RMS energy total. These files can be concatenated for easier viewing / data manipulation by navigating to the output folder of interest and running the following command. This command concatenates all files, keeping the header of the first file, and dropping the header from all other files. You can change the output file name to whatever you'd like. 
+Contains subfolders corresponding to each sample listed in `folders.csv`. Each subfolder contains one csv file per date. Note that each of these files holds one row **per second**, not one row per date — `total_raw_rmse` and `total_adj_rmse` are nightly constants repeated down every row.
 
-```shell
-# Total summary concatenation (get one massive file of daily total RMS energy
-awk 'FNR==1 && NR!=1 { next } { print }' *.csv > combined_daily_totals.csv
-```
+Concatenating these by hand is no longer necessary. The `awk` one-liner that used to live here is now `rule combine_site_totals`, which runs automatically and writes `results/Summary/{sample}_combined_daily_totals.csv`.
+
+**Summary**
+
+Two kinds of file, both produced automatically:
+
+| File | Shape | Use |
+|------|-------|-----|
+| `{sample}_combined_daily_totals.csv` | Every second, one file per site | Analysis in R. Large: ~3,600 rows per night |
+| `all_samples_nightly_totals.csv` | One row per site per night | Opens comfortably in Excel |
+
+The cross-site summary carries `sample`, `date`, `Julian`, `n_seconds`, `total_raw_rmse`, `total_adj_rmse`, and the mean, min and max of `rmsEnergy` for that night.
+
+**plots**
+
+One PNG per site, `{sample}_nightly_rmse.png`: nightly adjusted RMS energy against Julian date, with a GAM smooth once there are at least four nights of data. Transparent background, sized for slides and posters.
 
 **logs folder**
 
@@ -225,8 +250,11 @@ If running in the background with `nohup`, this log shows the progress of the pi
 
 
 
-**done.txt**
-`done.txt` is a "dummy" file created by the `rule_all` of this workflow. This file has no meaning or importance other than to signify the end of the pipeline!
+**full_pipeline_run_log.log**
+
+Written by `rule all` as the final step. Every rule's log, concatenated in the order the pipeline produced them — RMS power per sample, then the per-site combines, then the cross-site collation, then the plots — each under a labelled header. Its presence is also what tells Snakemake the pipeline finished, so it replaces the old `done.txt` marker.
+
+Send this one file if you need help with a run; it contains everything.
 
 
 ## Debugging
@@ -258,10 +286,18 @@ pixi run unlock
 ```shell
 rm -r .snakemake
 ```
-Note that a Snakemake workflow will still not re-run even if unlocked if the expected outputs are already generated. Snakemake works off the principal of generating expected outputs. If all expected outputs are present, Snakemake will think there is nothing to be done. In this case, move the output folders and the `done.txt` file
+Note that a Snakemake workflow will still not re-run even if unlocked if the expected outputs are already generated. Snakemake works off the principal of generating expected outputs. If all expected outputs are present, Snakemake will think there is nothing to be done. In this case, remove the results folder — everything in it is regenerated from your `.WAV` files.
 
 ``` shell
-rm done.txt
+rm -rf results/
+```
+
+To rerun a single sample rather than everything, delete just that sample's outputs:
+
+``` shell
+rm -rf results/RMS_Power/<sample>.RMS_Power results/Total_RMSE/<sample>.RMS_Power
+rm -f results/Summary/<sample>_combined_daily_totals.csv results/plots/<sample>_nightly_rmse.png
+rm -f results/full_pipeline_run_log.log
 ```
 
 ## Changelog
@@ -285,6 +321,18 @@ rm done.txt
 - Adjusted `01_calcRMS_Power.R` to apply gain offset
 
 *August 17th, 2026:*
+
+- **All pipeline output now lives under `results/`**, preserving the previous folder structure one level down. The root is set by the `RESULTS` variable at the top of the `Snakefile`
+
+- **`done.txt` replaced by `results/full_pipeline_run_log.log`** — `rule all` now concatenates every rule's log, in pipeline order, into one file
+
+- Added `rule combine_site_totals`: the `awk` concatenation formerly documented in this README, promoted to a rule that runs per site automatically
+
+- Added `rule collate_summary` (`code/02_collateSummary.R`): one row per site per night across all samples, small enough to open in Excel
+
+- Added `rule plot_site_totals` (`code/03_plotSiteTotals.R`): nightly RMS energy vs Julian date, one PNG per site, with a GAM smooth once four or more nights exist. Added `r-mgcv` to the environment, which `geom_smooth(method = "gam")` requires
+
+- Added `message:` directives to every rule, so background runs report progress in `nohup.out`
 
 - Added `pixi.toml`; pixi is now the recommended way to install and run the pipeline. The conda route still works and is documented under Installation
 

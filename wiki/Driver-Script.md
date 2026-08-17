@@ -203,8 +203,11 @@ dates   <- basename(subdirs)
 names(subdirs) <- dates
 names(dates)   <- dates
 
-opDir <- "Total_RMSE/"
-if (!dir.exists(opDir)) dir.create(opDir)
+# Derived from outputDir so Total_RMSE always lands beside RMS_Power:
+#   results/RMS_Power/<sample>.RMS_Power  ->  results/Total_RMSE/
+opDir <- file.path(dirname(dirname(outputDir)), "Total_RMSE")
+if (!dir.exists(opDir)) dir.create(opDir, recursive = TRUE)
+opDir <- paste0(opDir, "/")
 sample      <- basename(outputDir)
 resultsPath <- paste0(opDir, sample, "/")
 if (!dir.exists(resultsPath)) dir.create(resultsPath)

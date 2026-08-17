@@ -12,7 +12,12 @@ SnakeBat is a Snakemake workflow for calculating root mean square (RMS) acoustic
 1. **Filter** — isolates the bat echolocation frequency band (default 30–70 kHz) using a Butterworth bandpass filter
 2. **Measure** — computes RMS energy in dBFS for every 1-second window of audio, corrected for microphone gain
 3. **Organize** — groups output files by date automatically based on AudioMoth filename conventions
-4. **Collate** — produces per-date summary files with total raw and zero-anchored adjusted RMS energy
+4. **Collate** — produces per-date files with total raw and zero-anchored adjusted RMS energy
+5. **Combine** — flattens each site's per-date files into one CSV, and builds a cross-site table of one row per site per night
+6. **Plot** — draws nightly RMS energy against Julian date, one figure per site
+7. **Report** — concatenates every rule's log into a single ordered run log
+
+All output is written under `results/`.
 
 ---
 

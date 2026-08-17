@@ -11,13 +11,19 @@ This page describes the role of every file in the SnakeBat repository and summar
 ```
 SnakeBat/
 ├── Snakefile                  # Snakemake workflow definition (Python-based DSL)
+├── pixi.toml                  # Software environment + named tasks (recommended)
+├── pixi.lock                  # Exact resolved package versions - commit this
 ├── config.yaml                # User-facing parameter configuration
 ├── folders.csv                # Maps sample names to raw data directories
 ├── env_config/
-│   └── snakeBat.yaml          # Conda environment definition
+│   └── snakeBat.yaml          # Conda environment definition (alternative to pixi)
 ├── code/
-│   ├── BatFunctions.R         # All acoustic signal processing functions
-│   └── 01_calcRMS_Power.R     # Entry-point driver script (called by Snakemake)
+│   ├── BatFunctions.R         # Signal processing functions + logging helpers
+│   ├── 01_calcRMS_Power.R     # Rule 1 driver: RMS power per sample
+│   ├── 02_collateSummary.R    # Rule 3 driver: cross-site nightly summary
+│   └── 03_plotSiteTotals.R    # Rule 4 driver: nightly RMS plot per site
+├── logs/                      # One log per rule, per sample (created at runtime)
+├── results/                   # ALL pipeline output (created at runtime)
 └── img/
     ├── SnakeBat_logo.png
     └── dag.png                # Snakemake DAG visualization

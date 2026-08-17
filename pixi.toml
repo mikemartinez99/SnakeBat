@@ -52,6 +52,7 @@ make = "*"
 #      rather keep the environment lean.
 r-dplyr = "*"
 r-ggplot2 = "*"
+r-mgcv = "*"               # geom_smooth(method = "gam") in rule plot_site_totals
 "r-data.table" = "*"       # quoted: an unquoted dot would nest the TOML key
 r-foreach = "*"
 r-doparallel = "*"

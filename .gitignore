@@ -1,9 +1,9 @@
 test_data/*
-RMS_Power/*
 logs/*
-done.txt
 nohup.out
 .snakemake/*
 PAB_BB_2025/
-Total_RMSE/
 ~$*
+
+# Pipeline outputs (all under results/ since 2026-08-17)
+results/

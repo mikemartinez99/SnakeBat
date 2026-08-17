@@ -53,15 +53,52 @@ This list is used by `expand()` in `rule all` to generate all expected output pa
 
 ---
 
-## `rule all` — The Terminal Rule (Lines 19–25)
+## The four rules
+
+| Rule | Runs | Produces |
+|------|------|----------|
+| `calc_RMS_Power` | Once per sample | `results/RMS_Power/{sample}.RMS_Power/` (and `results/Total_RMSE/` as a side effect) |
+| `combine_site_totals` | Once per sample | `results/Summary/{sample}_combined_daily_totals.csv` |
+| `plot_site_totals` | Once per sample | `results/plots/{sample}_nightly_rmse.png` |
+| `collate_summary` | Once, across all samples | `results/Summary/all_samples_nightly_totals.csv` |
+| `rule all` | Once | `results/full_pipeline_run_log.log` |
+
+Every output path is built from a single `RESULTS` variable at the top of the `Snakefile`:
+
+```python
+RESULTS = "results"
+```
+
+Change that one string and every rule follows.
+
+Every rule also carries a `message:` directive, so a background run reports readable progress in `nohup.out`:
+
+```
+[1/4] Calculating RMS power for Test_2 (30000-70000 Hz, 1s segments) -> logs/Test_2.log
+[2/4] Combining nightly files for Test_1 -> results/Summary/Test_1_combined_daily_totals.csv
+[3/4] Plotting nightly RMS energy for Test_1 -> results/plots/Test_1_nightly_rmse.png
+[4/4] Pipeline complete - assembling full run log at results/full_pipeline_run_log.log
+```
+
+---
+
+## `rule all` — The Terminal Rule
 
 ```python
 rule all:
     input:
-        expand("RMS_Power/{sample}.RMS_Power", sample = sample_list),
-    output: "done.txt"
+        expand(RESULTS + "/RMS_Power/{sample}.RMS_Power", sample = sample_list),
+        expand(RESULTS + "/Summary/{sample}_combined_daily_totals.csv", sample = sample_list),
+        expand(RESULTS + "/plots/{sample}_nightly_rmse.png", sample = sample_list),
+        RESULTS + "/Summary/all_samples_nightly_totals.csv"
+    output:
+        run_log = RESULTS + "/full_pipeline_run_log.log"
+    params:
+        logs = " ".join(ordered_logs())
+    message:
+        "[4/4] Pipeline complete - assembling full run log at {output.run_log}"
     shell: """
-    touch done.txt
+    ... concatenate every rule log, in order ...
     """
 ```
 
@@ -70,25 +107,38 @@ rule all:
 ### `expand()`
 
 ```python
-expand("RMS_Power/{sample}.RMS_Power", sample = sample_list)
+expand(RESULTS + "/RMS_Power/{sample}.RMS_Power", sample = sample_list)
 ```
 
 `expand()` is a Snakemake function that generates all combinations of a path template with a list of values. For `sample_list = ["test1", "test2"]` it produces:
 
 ```python
-["RMS_Power/test1.RMS_Power", "RMS_Power/test2.RMS_Power"]
+["results/RMS_Power/test1.RMS_Power", "results/RMS_Power/test2.RMS_Power"]
 ```
 
 Snakemake registers these as **required inputs** to `rule all`. Since neither exists on disk when you first run the pipeline, Snakemake searches its rules for ones that can produce them — finding `rule calc_RMS_Power`.
 
-### Sentinel output
+### Terminal output
+
+Earlier versions wrote an empty `done.txt` sentinel here. `rule all` now produces something useful instead: `results/full_pipeline_run_log.log`, containing every rule's log concatenated in the order the pipeline produced them, each under a labelled header.
+
+It still serves the same structural purpose — giving `rule all` a concrete output Snakemake can track, so it knows whether the rule has already run — but it is also the single file worth reading after a run, and the single file worth sending if you need help.
+
+The order comes from a helper at the top of the `Snakefile`:
 
 ```python
-output: "done.txt"
-shell: """touch done.txt"""
+def ordered_logs():
+    logs = []
+    logs += [f"logs/{s}.log" for s in sample_list]          # 1. calc_RMS_Power
+    logs += [f"logs/{s}_combine.log" for s in sample_list]  # 2. combine_site_totals
+    logs += ["logs/collate_summary.log"]                    # 3. collate_summary
+    logs += [f"logs/{s}_plot.log" for s in sample_list]     # 4. plot_site_totals
+    return logs
 ```
 
-`done.txt` is an empty sentinel file with no scientific meaning. It exists only to give `rule all` a concrete output that Snakemake can track. Without a declared output, Snakemake would have no way to know whether `rule all` had already been run. If you want to rerun the entire pipeline, delete `done.txt` (along with the output directories).
+**Add new rules to this list as you add them to the workflow**, or their logs will be missing from the combined file.
+
+To rerun the entire pipeline, delete `results/`.
 
 ---
 

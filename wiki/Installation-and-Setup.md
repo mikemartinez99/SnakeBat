@@ -148,16 +148,26 @@ nohup pixi run pipeline --cores 8 &
 
 ## 6. Check it worked
 
-A finished run leaves a `done.txt` file in the project folder and this structure:
+A finished run leaves everything under `results/`:
 
 ```
 SnakeBat/
-|-- RMS_Power/           per-second values, one folder per site, then per date
-|-- Total_RMSE/          nightly totals, one CSV per date per site
-|-- logs/                one log per site
-|-- nohup.out            overall Snakemake progress
-|-- done.txt             written only when the whole pipeline finished
+|-- results/
+|   |-- RMS_Power/                  per-second values, per site, then per date
+|   |-- Total_RMSE/                 nightly files, one CSV per date per site
+|   |-- Summary/
+|   |   |-- <site>_combined_daily_totals.csv   every second, one file per site
+|   |   |-- all_samples_nightly_totals.csv     one row per site per night
+|   |-- plots/
+|   |   |-- <site>_nightly_rmse.png            nightly RMS vs Julian date
+|   |-- full_pipeline_run_log.log   every rule log, in order
+|-- logs/                           one log per rule, per site
+|-- nohup.out                       overall Snakemake progress
 ```
+
+`results/full_pipeline_run_log.log` is written last and is what tells Snakemake the pipeline finished. Start there — it contains every other log.
+
+For a quick look at your data, open `results/Summary/all_samples_nightly_totals.csv`: one row per site per night, small enough for Excel.
 
 Everything is a plain CSV — open it in Excel or read it straight into R. See [Execution Flow and Outputs](Execution-Flow-and-Outputs) for what each column means.
 
@@ -210,9 +220,13 @@ Work down this list before asking for help; it covers nearly everything.
 pixi run unlock
 ```
 
-**"Nothing to be done"** — Snakemake only creates results that are missing, so it thinks the work is already complete. To genuinely rerun, delete `done.txt` and the output folders for the samples you want redone.
+**"Nothing to be done"** — Snakemake only creates results that are missing, so it thinks the work is already complete. To genuinely rerun, delete the results folder; everything in it is regenerated from your `.WAV` files.
 
-**Still stuck** — send us `logs/<sample>.log` for the site that failed, plus the last 20 lines of `nohup.out`. That is almost always enough to find it.
+```bash
+rm -rf results/
+```
+
+**Still stuck** — send us `results/full_pipeline_run_log.log`. It contains every rule's log in order, so it is usually all we need.
 
 ---
 
