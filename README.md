@@ -1,4 +1,4 @@
-# SnakeBat Pipeline
+# SnakeBat Pipeline ![Version](https://img.shields.io/badge/version-2.0-blue)
 <img src="img/SnakeBat_logo.png" alt="SnakeBat Logo" width="400" height="150" align="right" style="border: none;" />
 
 Snakemake workflow for root mean square (RMS) acoustic energy processing of bat data.
