@@ -4,6 +4,8 @@
 
 This page covers the three configuration files that control the pipeline: `config.yaml` (parameters), `folders.csv` (samples), and `env_config/snakeBat.yaml` (software environment). These are the only files you need to edit to run the pipeline on your own data.
 
+> For a parameter-by-parameter reference — what each setting does, how to choose it, and what breaks if it is wrong — see **[Parameters](Parameters)**. For what the pipeline writes, see **[Understanding the Outputs](Understanding-the-Outputs)**.
+
 ---
 
 ## `config.yaml`

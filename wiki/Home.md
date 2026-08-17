@@ -26,6 +26,8 @@ All output is written under `results/`.
 | Page | Contents |
 |------|----------|
 | [Installation and Setup](Installation-and-Setup) | Install pixi, set up the environment, run the pipeline, troubleshooting |
+| [Parameters](Parameters) | Every setting in `config.yaml` and `folders.csv`, and how to choose it |
+| [Understanding the Outputs](Understanding-the-Outputs) | Every file the pipeline writes, and what each column means |
 | [Repository Overview](Repository-Overview) | File tree, role of each file, data flow summary |
 | [Signal Processing — `rmsPower()`](Signal-Processing-rmsPower) | Bandpass filter, segment slicing, dBFS math, gain offset |
 | [Signal Processing — `calcTotalRMSE()`](Signal-Processing-calcTotalRMSE) | Date collation, Julian day, totaling across files |

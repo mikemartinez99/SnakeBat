@@ -6,6 +6,8 @@
 
 **Getting Started**
 - [Installation and Setup](Installation-and-Setup)
+- [Parameters](Parameters)
+- [Understanding the Outputs](Understanding-the-Outputs)
 
 **Overview**
 - [Repository Overview](Repository-Overview)

@@ -98,7 +98,7 @@ The name on the left becomes the name of your results folder. Three things break
 - No stray spaces before or after a path.
 - Every path must exist, and any external drive must be mounted before you start.
 
-**`config.yaml`** — the measurement settings. See [Snakemake Configuration](Snakemake-Configuration) for what each one means. The defaults suit our AudioMoth setup; the one with real scientific consequence is the filter band, since it decides what counts as a bat.
+**`config.yaml`** — the measurement settings. See [Parameters](Parameters) for what each one does and how to choose it. If you do not need a gain adjustment, set `gainOffset: 0`. The defaults suit our AudioMoth setup; the one with real scientific consequence is the filter band, since it decides what counts as a bat.
 
 Save both files. An unsaved `config.yaml` is the single most common cause of "it ran, but with the wrong settings".
 
@@ -169,7 +169,7 @@ SnakeBat/
 
 For a quick look at your data, open `results/Summary/all_samples_nightly_totals.csv`: one row per site per night, small enough for Excel.
 
-Everything is a plain CSV — open it in Excel or read it straight into R. See [Execution Flow and Outputs](Execution-Flow-and-Outputs) for what each column means.
+Everything is a plain CSV — open it in Excel or read it straight into R. See [Understanding the Outputs](Understanding-the-Outputs) for what each file is and what every column means.
 
 The end of a per-site log tells you whether anything was skipped:
 
