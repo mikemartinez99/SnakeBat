@@ -4,6 +4,13 @@ import pandas as pd
 #----- Set config file
 configfile: "config.yaml"
 
+#----- Container image
+# Applies to every rule in this workflow, including any added later.
+# Only used when the pipeline is launched with --use-singularity (Snakemake 7)
+# or --use-apptainer (Snakemake 8+); ignored otherwise, so the plain conda
+# workflow described in the README is unaffected.
+container: "docker://ghcr.io/mikemartinez99/snakebat:latest"
+
 #----- Read in the folder file
 sample_file = config["folders"]
 samples_df = pd.read_csv(sample_file).set_index("sample", drop=False)

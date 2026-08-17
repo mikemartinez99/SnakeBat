@@ -1,0 +1,109 @@
+#--------------------------------------------------------------------------#
+# SnakeBat v1.0 - pixi environment
+# Mike Martinez M.S. / Megan Graham
+#
+# Quick start:
+#   pixi install        # resolve + install everything below (one time)
+#   pixi run setup-r    # add the two CRAN-only R packages (one time)
+#   pixi run pipeline   # run the workflow
+#
+# pixi writes a pixi.lock alongside this file. Commit it - that lock is what
+# makes "the same answer twice" true across machines.
+#--------------------------------------------------------------------------#
+
+[workspace]
+name = "snakebat"
+version = "1.0.0"
+description = "Snakemake workflow for root mean square (RMS) acoustic energy processing of bat recordings"
+authors = ["Mike Martinez", "Megan Graham"]
+channels = ["conda-forge", "bioconda"]
+platforms = ["osx-arm64", "linux-64"]
+
+#--------------------------------------------------------------------------#
+# DEPENDENCIES
+#--------------------------------------------------------------------------#
+
+[dependencies]
+
+#----- Workflow engine and the Snakefile's own runtime
+python = "3.10.*"
+snakemake = "7.32.*"
+pandas = "*"
+numpy = "<2"
+
+#----- R interpreter
+r-base = "4.4.*"
+
+#----- R packages the pipeline actually calls, that exist on conda-forge
+r-lubridate = "*"          # calcTotalRMSE(): yday() for the Julian column
+
+#----- Toolchain for building the CRAN-only packages (see setup-r task).
+#      Only needed for that one-time install, but it has to be in the
+#      environment for the build to succeed on a fresh machine.
+c-compiler = "*"
+cxx-compiler = "*"
+make = "*"
+
+#----- Carried over from env_config/snakeBat.yaml.
+#      None of these are referenced by the current code (verified: zero
+#      usages in code/ and Snakefile). Kept so this environment matches the
+#      documented one, and because planned rules 3 and 4 (summary figures,
+#      cross-site statistics) will want them. Safe to delete if you would
+#      rather keep the environment lean.
+r-dplyr = "*"
+r-ggplot2 = "*"
+"r-data.table" = "*"       # quoted: an unquoted dot would nest the TOML key
+r-foreach = "*"
+r-doparallel = "*"
+
+#--------------------------------------------------------------------------#
+# CRAN-ONLY DEPENDENCIES
+#
+# tuneR and seewave are NOT packaged for conda on any channel:
+#   * conda-forge / bioconda : no build exists
+#   * legacy `r` channel     : ships r-seewave 2.2.3, but it declares a
+#                              dependency on `r-tuner`, which was never
+#                              published - so it can never be solved
+#                              ("nothing provides r-tuner needed by
+#                               r-seewave-2.2.3")
+#
+# They therefore come from CRAN, installed into this environment's own R
+# library by `pixi run setup-r`. That keeps them inside .pixi/ rather than
+# in a user-level R library, so the environment stays self-contained.
+#--------------------------------------------------------------------------#
+
+[tasks.setup-r]
+description = "One-time: install the CRAN-only R packages (tuneR, seewave) into this environment"
+cmd = "Rscript -e \"pkgs <- c('tuneR','seewave'); missing <- pkgs[!(pkgs %in% rownames(installed.packages()))]; if (length(missing) == 0) { message('CRAN packages already present: ', paste(pkgs, collapse=', ')) } else { message('Installing from CRAN: ', paste(missing, collapse=', ')); install.packages(missing, repos='https://cloud.r-project.org', lib=.libPaths()[1]) }; for (p in pkgs) if (!requireNamespace(p, quietly=TRUE)) stop('FAILED to install ', p); message('R dependencies verified')\""
+
+#--------------------------------------------------------------------------#
+# TASKS
+#--------------------------------------------------------------------------#
+
+[tasks.check]
+description = "Verify every R and Python dependency the pipeline needs is importable"
+depends-on = ["setup-r"]
+cmd = "Rscript -e \"for (p in c('tuneR','seewave','lubridate')) { library(p, character.only=TRUE, quietly=TRUE); message('R  ok: ', p) }\" && python -c \"import pandas, snakemake; print('py ok: pandas', pandas.__version__)\" && snakemake --version"
+
+[tasks.dry-run]
+description = "Show what the pipeline would do, without running it"
+depends-on = ["setup-r"]
+cmd = "snakemake -s Snakefile --cores 2 --dry-run"
+
+[tasks.pipeline]
+# Deliberately foreground. Background it from the shell instead:
+#   nohup pixi run pipeline &
+# A trailing "&" inside the task would let the task shell exit immediately,
+# so pixi would return before Snakemake had done anything and you would lose
+# the exit status.
+description = "Run the pipeline (background it with: nohup pixi run pipeline &)"
+depends-on = ["setup-r"]
+cmd = "snakemake -s Snakefile --cores 2"
+
+[tasks.unlock]
+description = "Clear a stale Snakemake directory lock left by an interrupted run"
+cmd = "snakemake -s Snakefile --unlock"
+
+[tasks.dag]
+description = "Write the workflow DAG to img/dag.png (requires graphviz)"
+cmd = "snakemake -s Snakefile --dag | dot -Tpng > img/dag.png"

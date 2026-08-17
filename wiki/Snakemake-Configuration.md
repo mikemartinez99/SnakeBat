@@ -140,16 +140,44 @@ Environment isolation guarantees that the pipeline always runs with the exact pa
 | `r-lubridate` | R | `yday()` for Julian date calculation |
 | `r-doparallel`, `r-foreach` | R | Listed but not directly used in the current scripts; available for future parallel constructs |
 
-### Packages NOT in conda (must be installed manually)
+### Packages NOT in conda
 
-`tuneR` and `seewave` are the two most critical R packages for the pipeline but are not available as standard conda packages. Install them once after activating the environment:
+`tuneR` and `seewave` are the two most critical R packages for the pipeline, and neither is available as a conda package on any channel. conda-forge and bioconda have no build at all; the legacy `r` channel ships `r-seewave 2.2.3`, but it declares a dependency on `r-tuner`, which was never published, so it can never be solved.
+
+They therefore have to come from CRAN. If you are using pixi (recommended), this is one command:
+
+```bash
+pixi run setup-r
+```
+
+If you are using the conda environment directly, install them by hand once after activating it:
 
 ```bash
 conda activate snakeBat
 R -e 'install.packages(c("tuneR", "seewave"))'
 ```
 
-This only needs to be done once per environment. If you rebuild the environment, you will need to reinstall them.
+Either way this only needs doing once per environment. If you rebuild the environment, they must be reinstalled.
+
+---
+
+## `pixi.toml` (recommended)
+
+`pixi.toml` supersedes `env_config/snakeBat.yaml` for day-to-day use. It declares the same packages plus a compiler toolchain, and adds named tasks so there is nothing to remember:
+
+| Task | Purpose |
+|------|---------|
+| `pixi run setup-r` | Install the CRAN-only R packages |
+| `pixi run check` | Verify every dependency imports |
+| `pixi run pipeline` | Run the workflow |
+| `pixi run dry-run` | Show what would run |
+| `pixi run unlock` | Clear a stale Snakemake lock |
+
+The advantage over the conda file is `pixi.lock`, which records the exact resolved build of every package rather than a loose version range. Commit it — it is what makes a run reproducible across machines and over time.
+
+`env_config/snakeBat.yaml` stays in the repository regardless, because Snakemake's own `conda:` directive in `rule calc_RMS_Power` refers to it.
+
+See [Installation and Setup](Installation-and-Setup) for the full walkthrough.
 
 ---
 

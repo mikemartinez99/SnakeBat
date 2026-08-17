@@ -20,6 +20,7 @@ SnakeBat is a Snakemake workflow for calculating root mean square (RMS) acoustic
 
 | Page | Contents |
 |------|----------|
+| [Installation and Setup](Installation-and-Setup) | Install pixi, set up the environment, run the pipeline, troubleshooting |
 | [Repository Overview](Repository-Overview) | File tree, role of each file, data flow summary |
 | [Signal Processing — `rmsPower()`](Signal-Processing-rmsPower) | Bandpass filter, segment slicing, dBFS math, gain offset |
 | [Signal Processing — `calcTotalRMSE()`](Signal-Processing-calcTotalRMSE) | Date collation, Julian day, totaling across files |
@@ -33,20 +34,24 @@ SnakeBat is a Snakemake workflow for calculating root mean square (RMS) acoustic
 ## Quick Start
 
 ```bash
-# 1. Clone the repo
+# 1. Install pixi (once per computer), then reopen your terminal
+curl -fsSL https://pixi.sh/install.sh | sh
+
+# 2. Clone the repo
 git clone https://github.com/mikemartinez99/SnakeBat
+cd SnakeBat
 
-# 2. Build the conda environment
-conda env create -f env_config/snakeBat.yaml
-conda activate snakeBat
-
-# 3. Install R packages not in conda
-R -e 'install.packages(c("tuneR", "seewave"))'
+# 3. Install the software environment (once per clone)
+pixi install
+pixi run setup-r
+pixi run check
 
 # 4. Edit config.yaml and folders.csv for your data
 
-# 5. Run the pipeline
-nohup snakemake -s Snakefile --cores 2 &
+# 5. Run the pipeline in the background
+nohup pixi run pipeline &
 ```
 
-See [Snakemake Configuration](Snakemake-Configuration) for how to set up `config.yaml` and `folders.csv` before running.
+See [Installation and Setup](Installation-and-Setup) for the same steps explained in full, and [Snakemake Configuration](Snakemake-Configuration) for how to set up `config.yaml` and `folders.csv` before running.
+
+> The older conda route (`conda env create -f env_config/snakeBat.yaml` plus a manual `install.packages()`) still works and is documented in [Installation and Setup](Installation-and-Setup). Pixi is recommended because `pixi.lock` pins every resolved package version, which is what makes results reproducible across machines.

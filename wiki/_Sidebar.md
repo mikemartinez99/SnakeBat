@@ -4,6 +4,9 @@
 
 ---
 
+**Getting Started**
+- [Installation and Setup](Installation-and-Setup)
+
 **Overview**
 - [Repository Overview](Repository-Overview)
 
