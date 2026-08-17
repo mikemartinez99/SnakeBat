@@ -109,18 +109,6 @@ rule calc_RMS_Power:
 
 
 #----- Rule to flatten one site's per-date files into a single CSV
-#
-# This is the awk one-liner that used to live in the README, promoted to a rule
-# so it runs automatically and per site. It keeps the header from the first
-# file and drops it from every subsequent one.
-#
-# NOTE: the output deliberately lands in Summary/ rather than inside
-# Total_RMSE/{sample}.RMS_Power/. Writing it into the folder being globbed
-# would make the *_total_RMSE.csv glob swallow its own output on a rerun.
-#
-# NOTE: the awk braces are doubled ({{ }}) because Snakemake runs this shell
-# block through Python string formatting first - single braces would be read
-# as a field reference and the rule would fail to build.
 rule combine_site_totals:
     input:
         RESULTS + "/RMS_Power/{sample}.RMS_Power"
@@ -147,11 +135,6 @@ rule combine_site_totals:
 
 
 #----- Rule to plot one site's nightly adjusted RMS energy against Julian date
-#
-# Reads the combined per-site CSV, which holds one row per second. The plotting
-# script reduces that to one row per night before plotting, because
-# total_adj_rmse is a nightly constant repeated down every row - plotting it
-# raw would stack thousands of identical points.
 rule plot_site_totals:
     input:
         combined = RESULTS + "/Summary/{sample}_combined_daily_totals.csv"
