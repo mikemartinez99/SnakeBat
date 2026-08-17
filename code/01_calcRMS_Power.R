@@ -15,7 +15,7 @@ source("code/BatFunctions.R")
 args <- commandArgs(trailingOnly = TRUE)
 
 #----- Check that all arguments are supplied
-if (length(args) < 8 | length(args) > 7) {
+if (length(args) != 8) {
     stop("Usage: RScript 01_calcRMS_Power.R <dataDir> <segmentDuration> <fileType> <samplingRate> <gainOffset> <bwFilterFrom> <bwFilterTo> <outputDir>")  
 }
 
