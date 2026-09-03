@@ -1,0 +1,17 @@
+cluster: >-
+  sbatch
+  -t {resources.maxtime}
+  --mem={resources.mem_mb}
+  -c {threads}
+  --output=slurm_logs/log_{rule}_%j.out
+  --mail-type=FAIL
+  --parsable
+default-resources:
+  - maxtime="04:00:00"
+  - mem_mb=8000
+jobs: 10
+latency-wait: 60
+keep-going: True
+rerun-incomplete: True
+printshellcmds: False
+cluster-cancel: scancel
