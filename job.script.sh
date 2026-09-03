@@ -53,7 +53,7 @@ mkdir -p slurm_logs
 #----- LOGGER
 cat <<EOF
 #───────────────────────── Initialization ──────────────────────────#
-Running SnakeBat Pipeline v1.0 with Snakemake $SMVER
+Running SnakeBat Pipeline v2.1 with Snakemake $SMVER
 Mode:        $MODE
 Job:         $SLURM_JOB_NAME
 Job ID:      $SLURM_JOB_ID
