@@ -1,4 +1,4 @@
-# SnakeBat Pipeline ![Version](https://img.shields.io/badge/version-2.0-blue)
+# SnakeBat Pipeline ![Version](https://img.shields.io/badge/version-2.1-blue)
 <img src="img/SnakeBat_logo.png" alt="SnakeBat Logo" width="400" height="150" align="right" style="border: none;" />
 
 Snakemake workflow for root mean square (RMS) acoustic energy processing of bat data.
@@ -12,7 +12,8 @@ Snakemake workflow for root mean square (RMS) acoustic energy processing of bat 
 # Table of Contents
 - [Introduction](#introduction)
 - [Installation](#installation)
-- [Implementation](#implementation)
+- [Implementation through SLURM](#implementation-through-slurm)
+- [Interactive Implementation](#interactive-implementation)
 - [Understanding the Outputs](#understanding-the-outputs)
 - [Debugging](#debugging)
 - [Changelog](#changelog)
@@ -97,7 +98,25 @@ py ok: pandas 2.3.3
 
 </details>
 
-## Implementation
+## Implementation through SLURM
+
+>[!IMPORTANT]
+> **This is the recommended method for running the pipeline**
+
+Submit the `job.script.sh` submission script. Before running the pipeline, it is always a good idea to do a dry-run to ensure the DAG resolves correctly
+
+```
+sbatch job.script.sh --dry-run
+```
+
+If the dry run finishes with no errors, submit the actual job:
+
+```
+sbatch job.script.sh
+```
+
+## Interactive Implementation
+
 To implement this pipeline, 3 things are **required**
 
 - `Snakefile`: Directs the flow of the pipeline
@@ -169,6 +188,7 @@ nohup pixi run pipeline --cores 8 &
 | `pixi task list` | Show every available task |
 
 If you want an interactive shell inside the environment — to explore results in R, for instance — use `pixi shell`, and `exit` to leave.
+
 
 ## Understanding the Outputs
 
