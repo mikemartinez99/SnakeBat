@@ -3,7 +3,7 @@
 #SBATCH --no-requeue
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=4G
+#SBATCH --mem=100G
 #SBATCH --time=60:00:00
 #SBATCH --mail-user=Megan.Graham@unh.edu
 #SBATCH --mail-type=FAIL
