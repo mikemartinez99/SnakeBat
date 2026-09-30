@@ -8,7 +8,7 @@ cluster: >-
   --parsable
 default-resources:
   - maxtime="04:00:00"
-  - mem_mb=8000
+  - mem_mb=100000
 jobs: 10
 latency-wait: 60
 keep-going: True
